@@ -1,12 +1,10 @@
-import fs from "fs";
-import path from "path";
+import db from "../db/models";
 
 const productController = {
-	list: (req, res) => {
-		let pathProducts = path.join("src", "db-mockups", "products.json");
-		let productsJson = fs.readFileSync(pathProducts, { encoding: "utf-8" });
-		let products = JSON.parse(productsJson);
-		let activeProducts = products.filter((product) => product.active);
+	list: async (req, res) => {
+		const products = await db.Product.findAll({
+			where: { active: true },
+		});
 
 		let response = {
 			status: "200",
@@ -16,101 +14,110 @@ const productController = {
 					resultset: {
 						offset: 0,
 						limit: 1000,
-						count: activeProducts.length,
+						count: products.length,
 					},
 				},
-				results: activeProducts,
+				results: products,
 			},
 		};
-		res.status(200).json(response);
+		return res.status(200).json(response);
 	},
-	show: (req, res) => {
-		let pathProducts = path.join("src", "db-mockups", "products.json");
-		let productsJson = fs.readFileSync(pathProducts, { encoding: "utf-8" });
-		let products = JSON.parse(productsJson);
-		let product = products.find((product) => product.id == req.params.id);
+	show: async (req, res) => {
+		try {
+			const product = await db.Product.findByPk(req.params.id);
 
-		let response = {
-			status: "200",
-			result: "ok",
-			data: product,
-		};
-		res.status(200).json(response);
+			let response = {
+				status: "200",
+				result: "ok",
+				data: product ? product : { message: "No product found" },
+			};
+			return res.status(200).json(response);
+		} catch (error) {
+			let response = {
+				status: "500",
+				result: "error",
+				message: error,
+				data: { messageError: error },
+			};
+			return res.status(500).json(response);
+		}
 	},
-	create: (req, res) => {
-		let pathProducts = path.join("src", "db-mockups", "products.json");
-		let productsJson = fs.readFileSync(pathProducts, { encoding: "utf-8" });
-		let products = JSON.parse(productsJson);
+	create: async (req, res) => {
+		try {
+			const product = await db.Product.create(req.body);
 
-		let newProduct = {
-			id: products[products.length - 1].id + 1,
-			name: req.body.name,
-			description: req.body.description,
-			price: Number(req.body.price),
-			discount: Number(req.body.discount),
-			stock: Number(req.body.stock),
-			active: req.body.active,
-		};
-		products.push(newProduct);
-		fs.writeFileSync(pathProducts, JSON.stringify(products));
-
-		let response = {
-			status: "201",
-			result: "ok",
-			message: "A new product was created with success",
-			data: newProduct,
-		};
-		res.status(201).json(response);
+			let response = {
+				status: "201",
+				result: "ok",
+				message: "A new product was created with success",
+				data: product,
+			};
+			return res.status(201).json(response);
+		} catch (error) {
+			let response = {
+				status: "500",
+				result: "error",
+				message: "There's been an error creating the product.",
+				data: { error: error },
+			};
+			return res.status(500).json(response);
+		}
 	},
-	edit: (req, res) => {
-		let pathProducts = path.join("src", "db-mockups", "products.json");
-		let productsJson = fs.readFileSync(pathProducts, { encoding: "utf-8" });
-		let products = JSON.parse(productsJson);
+	edit: async (req, res) => {
+		try {
+			const update = await db.Product.update(req.body, {
+				where: { id: req.params.id },
+			});
 
-		let productEdited = {
-			id: Number(req.params.id),
-			name: req.body.name,
-			description: req.body.description,
-			price: Number(req.body.price),
-			discount: Number(req.body.discount),
-			stock: Number(req.body.stock),
-			active: req.body.active,
-		};
-		products.forEach((product, index) => {
-			product.id == req.params.id
-				? (products[index] = productEdited)
-				: null;
-		});
-		fs.writeFileSync(pathProducts, JSON.stringify(products));
+			if (update == 0) throw new Error("No product found");
 
-		let response = {
-			status: "200",
-			result: "ok",
-			message: "Product edited with success",
-			data: productEdited,
-		};
-		res.status(201).json(response);
+			const product = await db.Product.findByPk(req.params.id);
+
+			let response = {
+				status: "200",
+				result: "ok",
+				message: "The product was edited with success",
+				data: product,
+			};
+			return res.status(200).json(response);
+		} catch (error) {
+			console.log(error);
+
+			let response = {
+				status: "500",
+				result: "error",
+				message: "There's been an error updating the product.",
+				data: { error: error.message },
+			};
+			return res.status(500).json(response);
+		}
 	},
-	delete: (req, res) => {
-		let pathProducts = path.join("src", "db-mockups", "products.json");
-		let productsJson = fs.readFileSync(pathProducts, { encoding: "utf-8" });
-		let products = JSON.parse(productsJson);
+	delete: async (req, res) => {
+		try {
+			const deleted = await db.Product.update(
+				{ active: 0 },
+				{
+					where: { id: req.params.id, active: true },
+				}
+			);
 
-		products.forEach((product, index) => {
-			product.id == req.params.id
-				? (products[index].active = false)
-				: null;
-		});
-		fs.writeFileSync(pathProducts, JSON.stringify(products));
-		let activeProducts = products.filter((product) => product.active);
+			if (deleted == 0) throw new Error("No product found");
 
-		let response = {
-			status: "200",
-			result: "ok",
-			message: "Product deleted with success",
-			data: activeProducts,
-		};
-		res.status(201).json(response);
+			let response = {
+				status: "200",
+				result: "ok",
+				message: "The product was deleted with success",
+			};
+			return res.status(200).json(response);
+		} catch (error) {
+			let response = {
+				status: "500",
+				result: "error",
+				message: "There's been an error deleting the product.",
+				data: { error: error.message },
+			};
+			return res.status(500).json(response);
+		}
 	},
 };
 
