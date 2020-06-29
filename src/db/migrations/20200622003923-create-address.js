@@ -1,27 +1,50 @@
 "use strict";
 module.exports = {
 	up: (queryInterface, Sequelize) => {
-		return queryInterface.createTable("users", {
+		return queryInterface.createTable("addresses", {
 			id: {
 				allowNull: false,
 				autoIncrement: true,
 				primaryKey: true,
 				type: Sequelize.INTEGER,
 			},
-			firstName: {
+			user_id: {
+				type: Sequelize.INTEGER,
+				allowNull: false,
+				references: {
+					model: "users",
+					key: "id",
+				},
+			},
+			address_line_1: {
 				type: Sequelize.STRING,
 				allowNull: false,
 			},
-			lastName: {
+			address_line_2: {
 				type: Sequelize.STRING,
+			},
+			apartment: {
+				type: Sequelize.STRING,
+				length: 50,
+			},
+			city: {
+				type: Sequelize.STRING,
+				length: 100,
 				allowNull: false,
 			},
-			email: {
+			state: {
 				type: Sequelize.STRING,
+				length: 100,
 				allowNull: false,
 			},
-			password: {
+			country: {
 				type: Sequelize.STRING,
+				length: 50,
+				allowNull: false,
+			},
+			zip_code: {
+				type: Sequelize.STRING,
+				length: 50,
 				allowNull: false,
 			},
 			active: {
@@ -29,11 +52,10 @@ module.exports = {
 				allowNull: false,
 				defaultValue: 1,
 			},
-			birthday: {
-				type: Sequelize.DATE,
-			},
-			phone_number: {
-				type: Sequelize.STRING,
+			is_primary: {
+				type: Sequelize.BOOLEAN,
+				allowNull: false,
+				defaultValue: 0,
 			},
 			createdAt: {
 				allowNull: false,
@@ -46,6 +68,6 @@ module.exports = {
 		});
 	},
 	down: (queryInterface, Sequelize) => {
-		return queryInterface.dropTable("users");
+		return queryInterface.dropTable("addresses");
 	},
 };
