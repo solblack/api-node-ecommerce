@@ -1,3 +1,4 @@
+import dotenv from "dotenv";
 import {
 	getProducts,
 	postProduct,
@@ -8,7 +9,8 @@ import {
 	productRequest,
 } from "./products/index";
 
-const host = "localhost:3000";
+// config .env file
+dotenv.config();
 
 const swaggerDocument = {
 	swagger: "2.0",
@@ -22,7 +24,7 @@ const swaggerDocument = {
 			email: "solbeor@gmail.com",
 		},
 	},
-	host: host,
+	host: process.env.URL,
 	basePath: "/",
 	schemes: ["https", "http"],
 	swagger: "2.0",
@@ -50,8 +52,7 @@ const swaggerDocument = {
 						},
 					},
 					"500": {
-						description:
-							"There's been a problem processing your request",
+						description: "There's been a problem processing your request",
 						schema: {
 							$ref: "#/definitions/ResponseError",
 						},

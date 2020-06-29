@@ -2,6 +2,10 @@ import express from "express";
 import router from "./src/routes/index";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "./src/doc/swagger.js";
+import dotenv from "dotenv";
+
+// config .env file
+dotenv.config();
 
 // Set up of the express app
 const APP = express();
@@ -18,8 +22,6 @@ APP.get("/api/swagger.json", function (req, res) {
 //  Router connection
 router.init(APP);
 
-const PORT = 3000;
-
-APP.listen(PORT, () => {
-	console.log(`server running on port ${PORT}`);
+APP.listen(process.env.PORT, () => {
+	console.log(`server running on port ${process.env.PORT}`);
 });
