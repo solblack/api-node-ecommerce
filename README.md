@@ -1,6 +1,6 @@
 # api-node-ecommerce
 
-API for an eCommerce made using Express framework
+API for a Clothing eCommerce made using Express framework
 
 -   Run "npm install" or "npm i" to install dependencies
 
